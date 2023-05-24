@@ -12,7 +12,7 @@
         android:theme="@style/Theme.SQLiteBDApp"
         tools:targetApi="31">
         <activity
-            android:name=".ListaPessoas"
+            android:name=".AddPessoa"
             android:exported="false" />
         <activity
             android:name=".MainActivity"

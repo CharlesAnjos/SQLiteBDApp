@@ -6,12 +6,15 @@ public class Pessoa implements Serializable {
     private int id;
     private String nome;
     private int idade;
+    private String telefone;
+    private String email;
+    public Pessoa(){}
 
-    public Pessoa(){};
-
-    public Pessoa(String nomePessoa, int idadePessoa) {
-        this.nome = nomePessoa;
-        this.idade = idadePessoa;
+    public Pessoa(String nome, int idade, String telefone, String email) {
+        this.nome = nome;
+        this.idade = idade;
+        this.telefone = telefone;
+        this.email = email;
     }
 
     public int getId() {
@@ -36,6 +39,22 @@ public class Pessoa implements Serializable {
 
     public void setIdade(int idade) {
         this.idade = idade;
+    }
+
+    public String getTelefone() {
+        return telefone;
+    }
+
+    public void setTelefone(String telefone) {
+        this.telefone = telefone;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public String toString(){

@@ -43,7 +43,9 @@ public class BDsqlite extends SQLiteOpenHelper {
         query.append("CREATE TABLE PESSOA(");
         query.append(" ID INTEGER PRIMARY KEY AUTOINCREMENT,");
         query.append(" NOME TEXT NOT NULL,");
-        query.append(" IDADE INT NOT NULL)");
+        query.append(" IDADE INT NOT NULL,");
+        query.append(" TELEFONE TEXT NOT NULL,");
+        query.append(" EMAIL TEXT NOT NULL)");
 
         db.execSQL(query.toString());
     }
@@ -75,6 +77,8 @@ public class BDsqlite extends SQLiteOpenHelper {
         ContentValues values = new ContentValues();
         values.put("NOME", pessoa.getNome()); // COLUNA / VALOR
         values.put("IDADE", pessoa.getIdade());
+        values.put("TELEFONE", pessoa.getTelefone());
+        values.put("EMAIL", pessoa.getEmail());
         db.insert("PESSOA",null,values);
 
     }
@@ -86,7 +90,9 @@ public class BDsqlite extends SQLiteOpenHelper {
         String[] colunas = {
                 "ID",
                 "NOME",
-                "IDADE"
+                "IDADE",
+                "TELEFONE",
+                "EMAIL"
         };
         Cursor cursor = dbselec.query(
                 "PESSOA",   // The table to query
@@ -104,6 +110,8 @@ public class BDsqlite extends SQLiteOpenHelper {
             p.setId(cursor.getInt(cursor.getColumnIndex("ID")));
             p.setNome(cursor.getString(cursor.getColumnIndex("NOME")));
             p.setIdade(Integer.parseInt(cursor.getString(cursor.getColumnIndex("IDADE"))));
+            p.setTelefone(cursor.getString(cursor.getColumnIndex("TELEFONE")));
+            p.setEmail(cursor.getString(cursor.getColumnIndex("EMAIL")));
             pessoas.add(p);
         }
 

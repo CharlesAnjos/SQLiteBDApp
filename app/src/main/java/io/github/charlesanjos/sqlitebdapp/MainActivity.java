@@ -2,16 +2,21 @@ package io.github.charlesanjos.sqlitebdapp;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
-import android.widget.ImageButton;
-import android.widget.TextView;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
+import android.widget.Toast;
 
-import com.google.android.material.textfield.TextInputEditText;
-import com.google.android.material.textfield.TextInputLayout;
+import java.util.List;
 
 import io.github.charlesanjos.sqlitebdapp.dbconn.BDsqlite;
 import io.github.charlesanjos.sqlitebdapp.entities.Pessoa;
@@ -19,107 +24,115 @@ import io.github.charlesanjos.sqlitebdapp.entities.Pessoa;
 public class MainActivity extends AppCompatActivity {
 
     BDsqlite bd;
-    TextView tv_criar_usuario;
-    ImageButton bt_listar;
-    TextInputLayout til_nome;
-    TextInputEditText ti_nome;
-    TextInputLayout til_idade;
-    TextInputEditText ti_idade;
-    Button bt_criar;
+    ListView listaPessoas;
+    ArrayAdapter<Pessoa> adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        getSupportActionBar().setTitle("Contatos");
 
-        tv_criar_usuario = findViewById(R.id.tv_criar_usuario);
-        bt_listar = findViewById(R.id.bt_listar);
-        til_nome = findViewById(R.id.til_nome);
-        ti_nome = findViewById(R.id.ti_nome);
-        til_idade = findViewById(R.id.til_idade);
-        ti_idade = findViewById(R.id.ti_idade);
-        bt_criar = findViewById(R.id.bt_criar);
+        listaPessoas = findViewById(R.id.listaPessoas);
 
         bd = new BDsqlite(this);
-        bt_listar.setOnClickListener(listarPessoas());
-        bt_criar.setOnClickListener(adicionarPessoa());
+        List<Pessoa> pessoas = bd.consultarDados();
 
-        Pessoa pessoa = (Pessoa) getIntent().getSerializableExtra("pessoa");
-        if(pessoa != null){
-            tv_criar_usuario.setText("Editar usuário");
-            ti_nome.setText(pessoa.getNome());
-            ti_idade.setText(String.valueOf(pessoa.getIdade()));
-            bt_criar.setText("Editar");
-            bt_criar.setOnClickListener(editarPessoa(pessoa));
-        }
+        adapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_list_item_1, pessoas);
+        listaPessoas.setAdapter(adapter);
+        listaPessoas.setOnItemClickListener(this::onItemClick);
+        listaPessoas.setOnItemLongClickListener(this::onItemLongClick);
     }
 
-    private View.OnClickListener listarPessoas() {
-        return new Button.OnClickListener(){
+    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+        Pessoa pessoa = (Pessoa) parent.getAdapter().getItem(position);
+        AlertDialog dialog = new AlertDialog.Builder(getActivity()).create();
+        dialog.setTitle("Detalhes");
+        dialog.setMessage("Nome: " + pessoa.getNome() + "\nIdade: " + pessoa.getIdade());
+        dialog.setButton(DialogInterface.BUTTON_POSITIVE, "Deletar",
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        deleteAlertDialog(pessoa);
+                    }
+                });
+        dialog.setButton(DialogInterface.BUTTON_NEGATIVE, "Cancelar", new DialogInterface.OnClickListener() {
             @Override
-            public void onClick(View v) {
-                Intent listarPessoasIntent = new Intent(getActivity(),ListaPessoas.class);
-                startActivity(listarPessoasIntent);
+            public void onClick(DialogInterface dialogInterface, int i) {
             }
-        };
+        });
+        dialog.setButton(DialogInterface.BUTTON_NEUTRAL, "Editar",
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        Intent addPessoaIntent = new Intent(getActivity(),
+                                AddPessoa.class);
+                        addPessoaIntent.putExtra("pessoa", pessoa);
+                        startActivity(addPessoaIntent);
+                    }
+                });
+        dialog.show();
     }
 
-    private View.OnClickListener adicionarPessoa() {
-        return new Button.OnClickListener(){
+    public void deleteAlertDialog(Pessoa pessoa) {
+        AlertDialog dialog = new AlertDialog.Builder(getActivity()).create();
+        dialog.setTitle("Deletando " + pessoa.getNome());
+        dialog.setMessage("Esta acao e irreversivel. Tem certeza que deseja " +
+                "prosseguir?");
+        dialog.setButton(DialogInterface.BUTTON_POSITIVE, "Deletar",
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        bd.excluir(pessoa.getId());
+                        adapter.remove(pessoa);
+                        adapter.notifyDataSetChanged();
+                    }
+                });
+        dialog.setButton(DialogInterface.BUTTON_NEGATIVE, "Cancelar", new DialogInterface.OnClickListener() {
             @Override
-            public void onClick(View v) {
-                String nomePessoa = ti_nome.getEditableText().toString();
-                String idadePessoa = ti_idade.getEditableText().toString();
-
-                if(!nomePessoa.equals("") && !idadePessoa.equals("")){
-                    Pessoa pessoa = new Pessoa(nomePessoa, Integer.parseInt(idadePessoa));
-                    ti_nome.setText("");
-                    ti_idade.setText("");
-                    bd.inserirPessoa(pessoa);
-                    Intent listarPessoasIntent = new Intent(getActivity(),ListaPessoas.class);
-                    startActivity(listarPessoasIntent);
-                }
-                else {
-                    if(nomePessoa.equals("")) til_nome.setError("Campo Obrigatorio!");
-                    if(idadePessoa.equals("")) til_idade.setError("Campo Obrigatorio!");
-                }
+            public void onClick(DialogInterface dialogInterface, int i) {
             }
-        };
+        });
+        dialog.show();
     }
 
-    private View.OnClickListener editarPessoa(Pessoa pessoa) {
-        return new Button.OnClickListener(){
-            @Override
-            public void onClick(View v) {
-                String nomePessoa = ti_nome.getEditableText().toString();
-                String idadePessoa = ti_idade.getEditableText().toString();
-
-                if(!nomePessoa.equals("") && !idadePessoa.equals("")){
-                    pessoa.setNome(nomePessoa);
-                    pessoa.setIdade(Integer.parseInt(idadePessoa));
-                    bd.update(pessoa.getId(),"NOME",pessoa.getNome());
-                    bd.update(pessoa.getId(),"IDADE",String.valueOf(pessoa.getIdade()));
-                    ti_nome.setText("");
-                    ti_idade.setText("");
-
-                    Intent listarPessoasIntent = new Intent(getActivity(),ListaPessoas.class);
-                    startActivity(listarPessoasIntent);
-                }
-                else {
-                    if(nomePessoa.equals("")) til_nome.setError("Campo Obrigatorio!");
-                    if(idadePessoa.equals("")) til_idade.setError("Campo Obrigatorio!");
-                }
-            }
-        };
-    }
-
-    public Context getActivity(){
-        return this;
+    public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+        Pessoa pessoa = (Pessoa) parent.getAdapter().getItem(position);
+        Toast.makeText(this, pessoa.getNome(), Toast.LENGTH_SHORT).show();
+        return true;
     }
 
     @Override
-    protected void onDestroy() {
-        bd.close();
-        super.onDestroy();
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.mainactivitymenu, menu);
+        return true;
+    }
+
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                Intent mainActivityIntent = new Intent(getActivity(),
+                        MainActivity.class);
+                startActivity(mainActivityIntent);
+                finish();
+                break;
+
+            case R.id.add:
+                Intent addPessoaIntent = new Intent(getActivity(),
+                        AddPessoa.class);
+                startActivity(addPessoaIntent);
+                finish();
+                return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    public Context getActivity() {
+        return this;
     }
 }

@@ -4,4 +4,5 @@
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="order_confirmation">Confirm Order?</string>
     <string name="ok">Ok!</string>
+    <string name="adicionar_pessoa">Adicionar Pessoa</string>
 </resources>
