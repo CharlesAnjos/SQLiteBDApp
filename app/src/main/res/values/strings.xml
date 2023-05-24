@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">SQLiteBDApp</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="order_confirmation">Confirm Order?</string>
+    <string name="ok">Ok!</string>
+</resources>
